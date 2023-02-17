@@ -26,15 +26,27 @@ local function update()
     position = { line = l - 1, character = c },
   }, function(err, result, ctx, config)
     if win and vim.api.nvim_win_is_valid(win) and result and result.contents then
+      vim.api.nvim_win_set_height(win, 3)
       local md_lines = vim.lsp.util.convert_input_to_markdown_lines(result.contents)
       md_lines = vim.lsp.util.trim_empty_lines(md_lines)
       if vim.tbl_isempty(md_lines) then
         return
       end
 
+      if
+        not pcall(function()
+          vim.api.nvim_buf_set_option(buf, "modifiable", true)
+          vim.lsp.util.stylize_markdown(buf, md_lines)
+          vim.api.nvim_buf_set_option(buf, "modifiable", false)
+        end)
+      then
+        return
+      end
+    else
       vim.api.nvim_buf_set_option(buf, "modifiable", true)
-      vim.lsp.util.stylize_markdown(buf, md_lines)
+      vim.lsp.util.stylize_markdown(buf, {})
       vim.api.nvim_buf_set_option(buf, "modifiable", false)
+      vim.api.nvim_win_set_height(win, 0)
     end
   end)
 end
@@ -104,8 +116,8 @@ end
 M.setup = function(user_cfg)
   local default_cfg = {
     position = "right",
-    height = 10,
-    width = 60,
+    height = 5,
+    width = 40,
     update_mode = "auto",
   }
 
